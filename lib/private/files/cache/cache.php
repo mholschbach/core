@@ -193,6 +193,8 @@ class Cache {
 					$file['size'] = $file['unencrypted_size'];
 				}
 				$file['permissions'] = (int)$file['permissions'];
+				$file['mtime'] = (int)$file['mtime'];
+				$file['storage_mtime'] = (int)$file['storage_mtime'];
 			}
 			return $files;
 		} else {
