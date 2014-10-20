@@ -152,21 +152,28 @@ class OC_Util {
 	 * @return boolean
 	 */
 	public static function isSharingDisabledForUser() {
-		if (\OC_Appconfig::getValue('core', 'shareapi_exclude_groups', 'no') === 'yes') {
-			$user = \OCP\User::getUser();
-			$groupsList = \OC_Appconfig::getValue('core', 'shareapi_exclude_groups_list', '');
-			$excludedGroups = explode(',', $groupsList);
-			$usersGroups = \OC_Group::getUserGroups($user);
-			if (!empty($usersGroups)) {
-				$remainingGroups = array_diff($usersGroups, $excludedGroups);
-				// if the user is only in groups which are disabled for sharing then
-				// sharing is also disabled for the user
-				if (empty($remainingGroups)) {
-					return true;
+		static $disabled;
+		if (isset($disabled)) {
+			return $disabled;
+		} else {
+			if (\OC_Appconfig::getValue('core', 'shareapi_exclude_groups', 'no') === 'yes') {
+				$user = \OCP\User::getUser();
+				$groupsList = \OC_Appconfig::getValue('core', 'shareapi_exclude_groups_list', '');
+				$excludedGroups = explode(',', $groupsList);
+				$usersGroups = \OC_Group::getUserGroups($user);
+				if (!empty($usersGroups)) {
+					$remainingGroups = array_diff($usersGroups, $excludedGroups);
+					// if the user is only in groups which are disabled for sharing then
+					// sharing is also disabled for the user
+					if (empty($remainingGroups)) {
+						$disabled = true;
+						return true;
+					}
 				}
 			}
+			$disabled = false;
+			return false;
 		}
-		return false;
 	}
 
 	/**
@@ -197,9 +204,9 @@ class OC_Util {
 		if ($userQuota === 'default') {
 			$userQuota = $config->getAppValue('files', 'default_quota', 'none');
 		}
-		if($userQuota === 'none') {
+		if ($userQuota === 'none') {
 			return \OCP\Files\FileInfo::SPACE_UNLIMITED;
-		}else{
+		} else {
 			return OC_Helper::computerFileSize($userQuota);
 		}
 	}
@@ -612,7 +619,7 @@ class OC_Util {
 			}
 		}
 
-		foreach($missingDependencies as $missingDependency) {
+		foreach ($missingDependencies as $missingDependency) {
 			$errors[] = array(
 				'error' => $l->t('PHP module %s not installed.', array($missingDependency)),
 				'hint' => $moduleHint
@@ -959,7 +966,7 @@ class OC_Util {
 		$id = OC_Config::getValue('instanceid', null);
 		if (is_null($id)) {
 			// We need to guarantee at least one letter in instanceid so it can be used as the session_name
-			$id = 'oc' . \OC::$server->getSecureRandom()->getLowStrengthGenerator()->generate(10, \OCP\Security\ISecureRandom::CHAR_LOWER.\OCP\Security\ISecureRandom::CHAR_DIGITS);
+			$id = 'oc' . \OC::$server->getSecureRandom()->getLowStrengthGenerator()->generate(10, \OCP\Security\ISecureRandom::CHAR_LOWER . \OCP\Security\ISecureRandom::CHAR_DIGITS);
 			OC_Config::$object->setValue('instanceid', $id);
 		}
 		return $id;
@@ -1197,7 +1204,7 @@ class OC_Util {
 	 * @deprecated Use \OC::$server->getSecureRandom()->getMediumStrengthGenerator()->generate($length); instead
 	 */
 	public static function generateRandomBytes($length = 30) {
-		return \OC::$server->getSecureRandom()->getMediumStrengthGenerator()->generate($length, \OCP\Security\ISecureRandom::CHAR_LOWER.\OCP\Security\ISecureRandom::CHAR_DIGITS);
+		return \OC::$server->getSecureRandom()->getMediumStrengthGenerator()->generate($length, \OCP\Security\ISecureRandom::CHAR_LOWER . \OCP\Security\ISecureRandom::CHAR_DIGITS);
 	}
 
 	/**
@@ -1212,6 +1219,7 @@ class OC_Util {
 
 	/**
 	 * Get URL content
+	 *
 	 * @param string $url Url to get content
 	 * @deprecated Use \OC::$server->getHTTPHelper()->getUrlContent($url);
 	 * @throws Exception If the URL does not start with http:// or https://
