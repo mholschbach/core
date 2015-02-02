@@ -9,9 +9,6 @@
  */
 class Test_App extends \Test\TestCase {
 
-	private $oldAppConfigService;
-	private $oldAppManagerService;
-
 	const TEST_USER1 = 'user1';
 	const TEST_USER2 = 'user2';
 	const TEST_USER3 = 'user3';
@@ -374,9 +371,9 @@ class Test_App extends \Test\TestCase {
 	public function testEnabledApps($user, $expectedApps, $forceAll) {
 		$userManager = \OC::$server->getUserManager();
 		$groupManager = \OC::$server->getGroupManager();
-		$user1 = $userManager->userExists(self::TEST_USER1) ? $userManager->get(self::TEST_USER1) : $userManager->createUser(self::TEST_USER1, self::TEST_USER1);
-		$user2 = $userManager->userExists(self::TEST_USER2) ? $userManager->get(self::TEST_USER2) : $userManager->createUser(self::TEST_USER2, self::TEST_USER2);
-		$user3 = $userManager->userExists(self::TEST_USER3) ? $userManager->get(self::TEST_USER3) : $userManager->createUser(self::TEST_USER3, self::TEST_USER3);
+		$user1 = $userManager->createUser(self::TEST_USER1, self::TEST_USER1);
+		$user2 = $userManager->createUser(self::TEST_USER2, self::TEST_USER2);
+		$user3 = $userManager->createUser(self::TEST_USER3, self::TEST_USER3);
 
 		$group1 = $groupManager->createGroup(self::TEST_GROUP1);
 		$group1->addUser($user1);
@@ -402,7 +399,6 @@ class Test_App extends \Test\TestCase {
 			);
 
 		$apps = \OC_App::getEnabledApps(true, $forceAll);
-		$this->assertEquals($expectedApps, $apps);
 
 		$this->restoreAppConfig();
 		\OC_User::setUserId(null);
@@ -413,6 +409,8 @@ class Test_App extends \Test\TestCase {
 
 		$group1->delete();
 		$group2->delete();
+
+		$this->assertEquals($expectedApps, $apps);
 	}
 
 	/**
@@ -468,8 +466,6 @@ class Test_App extends \Test\TestCase {
 	 * @param $appConfig app config mock
 	 */
 	private function registerAppConfig($appConfig) {
-		$this->oldAppConfigService = \OC::$server->query('AppConfig');
-		$this->oldAppManagerService = \OC::$server->query('AppManager');
 		\OC::$server->registerService('AppConfig', function ($c) use ($appConfig) {
 			return $appConfig;
 		});
@@ -483,10 +479,10 @@ class Test_App extends \Test\TestCase {
 	 */
 	private function restoreAppConfig() {
 		\OC::$server->registerService('AppConfig', function ($c) {
-			return $this->oldAppConfigService;
+			return new \OC\AppConfig(\OC_DB::getConnection());
 		});
-		\OC::$server->registerService('AppManager', function ($c) {
-			return $this->oldAppManagerService;
+		\OC::$server->registerService('AppManager', function (\OC\Server $c) {
+			return new \OC\App\AppManager($c->getUserSession(), $c->getAppConfig(), $c->getGroupManager());
 		});
 
 		// Remove the cache of the mocked apps list with a forceRefresh
