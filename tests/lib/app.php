@@ -448,30 +448,6 @@ class Test_App extends \Test\TestCase {
 		$user1->delete();
 	}
 
-	/**
-	 * Tests that the apps list is re-requested (not cached) when
-	 * no user is set.
-	 */
-	public function testEnabledAppsNoCache() {
-		$this->setupAppConfigMock()->expects($this->exactly(2))
-			->method('getValues')
-			->will($this->returnValue(
-				array(
-					'app3' => 'yes',
-					'app2' => 'no',
-				)
-			)
-			);
-
-		$apps = \OC_App::getEnabledApps(true);
-		$this->assertEquals(array('files', 'app3'), $apps);
-
-		// mock should be called again here
-		$apps = \OC_App::getEnabledApps(false);
-		$this->assertEquals(array('files', 'app3'), $apps);
-
-		$this->restoreAppConfig();
-	}
 
 	private function setupAppConfigMock() {
 		$appConfig = $this->getMock(
