@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Copyright (c) 2012 Bernhard Posselt <dev@bernhard-posselt.com>
  * Copyright (c) 2014 Vincent Petry <pvince81@owncloud.com>
@@ -6,7 +7,6 @@
  * later.
  * See the COPYING-README file.
  */
-
 class Test_App extends \Test\TestCase {
 
 	private $oldAppConfigService;
@@ -374,9 +374,9 @@ class Test_App extends \Test\TestCase {
 	public function testEnabledApps($user, $expectedApps, $forceAll) {
 		$userManager = \OC::$server->getUserManager();
 		$groupManager = \OC::$server->getGroupManager();
-		$user1 = $userManager->createUser(self::TEST_USER1, self::TEST_USER1);
-		$user2 = $userManager->createUser(self::TEST_USER2, self::TEST_USER2);
-		$user3 = $userManager->createUser(self::TEST_USER3, self::TEST_USER3);
+		$user1 = $userManager->userExists(self::TEST_USER1) ? $userManager->get(self::TEST_USER1) : $userManager->createUser(self::TEST_USER1, self::TEST_USER1);
+		$user2 = $userManager->userExists(self::TEST_USER2) ? $userManager->get(self::TEST_USER2) : $userManager->createUser(self::TEST_USER2, self::TEST_USER2);
+		$user3 = $userManager->userExists(self::TEST_USER3) ? $userManager->get(self::TEST_USER3) : $userManager->createUser(self::TEST_USER3, self::TEST_USER3);
 
 		$group1 = $groupManager->createGroup(self::TEST_GROUP1);
 		$group1->addUser($user1);
@@ -399,7 +399,7 @@ class Test_App extends \Test\TestCase {
 					'appforgroup12' => '["group2","group1"]',
 				)
 			)
-		);
+			);
 
 		$apps = \OC_App::getEnabledApps(true, $forceAll);
 		$this->assertEquals($expectedApps, $apps);
@@ -433,7 +433,7 @@ class Test_App extends \Test\TestCase {
 					'app2' => 'no',
 				)
 			)
-		);
+			);
 
 		$apps = \OC_App::getEnabledApps(true);
 		$this->assertEquals(array('files', 'app3'), $apps);
@@ -461,7 +461,7 @@ class Test_App extends \Test\TestCase {
 					'app2' => 'no',
 				)
 			)
-		);
+			);
 
 		$apps = \OC_App::getEnabledApps(true);
 		$this->assertEquals(array('files', 'app3'), $apps);
@@ -488,6 +488,7 @@ class Test_App extends \Test\TestCase {
 
 	/**
 	 * Register an app config mock for testing purposes.
+	 *
 	 * @param $appConfig app config mock
 	 */
 	private function registerAppConfig($appConfig) {
@@ -505,7 +506,7 @@ class Test_App extends \Test\TestCase {
 	 * Restore the original app config service.
 	 */
 	private function restoreAppConfig() {
-		\OC::$server->registerService('AppConfig', function ($c){
+		\OC::$server->registerService('AppConfig', function ($c) {
 			return $this->oldAppConfigService;
 		});
 		\OC::$server->registerService('AppManager', function ($c) {
