@@ -31,17 +31,24 @@ class Factory implements ICacheFactory {
 	 */
 	function create($prefix = '') {
 		$prefix = $this->globalPrefix . '/' . $prefix;
+		$logger = \OC::$server->getLogger();
 		if (XCache::isAvailable()) {
+			$logger->debug('creating xcache instance', array('app'=>'memcache'));
 			return new XCache($prefix);
 		} elseif (APCu::isAvailable()) {
+			$logger->debug('creating APCu instance', array('app'=>'memcache'));
 			return new APCu($prefix);
 		} elseif (APC::isAvailable()) {
+			$logger->debug('creating APC instance', array('app'=>'memcache'));
 			return new APC($prefix);
 		} elseif (Redis::isAvailable()) {
+			$logger->debug('creating redis instance', array('app'=>'memcache'));
 			return new Redis($prefix);
 		} elseif (Memcached::isAvailable()) {
+			$logger->debug('creating memcached instance', array('app'=>'memcache'));
 			return new Memcached($prefix);
 		} else {
+			$logger->debug('no cache available instance', array('app'=>'memcache'));
 			return new Null($prefix);
 		}
 	}
@@ -63,13 +70,18 @@ class Factory implements ICacheFactory {
 	 */
 	public function createLowLatency($prefix = '') {
 		$prefix = $this->globalPrefix . '/' . $prefix;
+		$logger = \OC::$server->getLogger();
 		if (XCache::isAvailable()) {
+			$logger->debug('creating xcache instance for low latency', array('app'=>'memcache'));
 			return new XCache($prefix);
 		} elseif (APCu::isAvailable()) {
+			$logger->debug('creating APCu instance for low latency', array('app'=>'memcache'));
 			return new APCu($prefix);
 		} elseif (APC::isAvailable()) {
+			$logger->debug('creating APC instance for low latency', array('app'=>'memcache'));
 			return new APC($prefix);
 		} else {
+			$logger->debug('no low latency cache available', array('app'=>'memcache'));
 			return null;
 		}
 	}
