@@ -48,12 +48,12 @@
         "source": {
             "type": "git",
             "url": "https://github.com/icewind1991/SMB.git",
-            "reference": "c8a93a9033be3f42527a82fe9df28d6fce326afe"
+            "reference": "40e384e8babf8bc10ade1e21bc9fc99c50efd5f7"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/icewind1991/SMB/zipball/c8a93a9033be3f42527a82fe9df28d6fce326afe",
-            "reference": "c8a93a9033be3f42527a82fe9df28d6fce326afe",
+            "url": "https://api.github.com/repos/icewind1991/SMB/zipball/40e384e8babf8bc10ade1e21bc9fc99c50efd5f7",
+            "reference": "40e384e8babf8bc10ade1e21bc9fc99c50efd5f7",
             "shasum": ""
         },
         "require": {
@@ -63,7 +63,7 @@
         "require-dev": {
             "satooshi/php-coveralls": "dev-master"
         },
-        "time": "2015-02-05 13:16:38",
+        "time": "2015-02-05 15:28:31",
         "type": "library",
         "installation-source": "source",
         "autoload": {
