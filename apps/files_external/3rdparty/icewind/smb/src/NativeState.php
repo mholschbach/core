@@ -8,11 +8,15 @@
 namespace Icewind\SMB;
 
 use Icewind\SMB\Exception\AlreadyExistsException;
+use Icewind\SMB\Exception\ConnectionRefusedException;
 use Icewind\SMB\Exception\Exception;
 use Icewind\SMB\Exception\ForbiddenException;
+use Icewind\SMB\Exception\HostDownException;
 use Icewind\SMB\Exception\InvalidTypeException;
+use Icewind\SMB\Exception\NoRouteToHostException;
 use Icewind\SMB\Exception\NotEmptyException;
 use Icewind\SMB\Exception\NotFoundException;
+use Icewind\SMB\Exception\TimedOutException;
 
 /**
  * Low level wrapper for libsmbclient-php for error handling
@@ -34,6 +38,7 @@ class NativeState {
 			case 0;
 				return;
 			case 1:
+			case 13:
 				throw new ForbiddenException($path, $error);
 			case 2:
 				throw new NotFoundException($path, $error);
@@ -45,6 +50,14 @@ class NativeState {
 				throw new InvalidTypeException($path, $error);
 			case 39:
 				throw new NotEmptyException($path, $error);
+			case 110:
+				throw new TimedOutException($path, $error);
+			case 111:
+				throw new ConnectionRefusedException($path, $error);
+			case 112:
+				throw new HostDownException($path, $error);
+			case 113:
+				throw new NoRouteToHostException($path, $error);
 			default:
 				$message = 'Unknown error (' . $error . ')';
 				if ($path) {
