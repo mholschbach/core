@@ -186,11 +186,16 @@ class Response {
 	 * @return array the headers
 	 */
 	public function getHeaders() {
-		$mergeWith = array();
+		$mergeWith = [];
 
 		if($this->lastModified) {
 			$mergeWith['Last-Modified'] =
 				$this->lastModified->format(\DateTime::RFC2822);
+		}
+
+		if(!isset($this->headers['Content-Security-Policy'])) {
+			$contentSecurityPolicy = new ContentSecurityPolicyHelper();
+			$this->headers['Content-Security-Policy'] = $contentSecurityPolicy->getPolicy();
 		}
 
 		if($this->ETag) {

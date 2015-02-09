@@ -49,12 +49,24 @@ class ResponseTest extends \Test\TestCase {
 	}
 
 
-	function testSetHeaders(){
+	public function testSetHeaders() {
 		$expected = array(
 			'Last-Modified' => 1,
 			'ETag' => 3,
 			'Something-Else' => 'hi'
 		);
+
+		$this->childResponse->setHeaders($expected);
+		$headers = $this->childResponse->getHeaders();
+		$expected['Content-Security-Policy'] = "default-src 'none';script-src 'self' 'unsafe-eval';style-src 'self' 'unsafe-inline';img-src 'self';font-src 'self';connect-src 'self';media-src 'self'";
+
+		$this->assertEquals($expected, $headers);
+	}
+
+	public function testOverwriteCSP() {
+		$expected = [
+			'Content-Security-Policy' => 'MyCustomPolicy',
+		];
 
 		$this->childResponse->setHeaders($expected);
 		$headers = $this->childResponse->getHeaders();
@@ -66,7 +78,7 @@ class ResponseTest extends \Test\TestCase {
 	public function testAddHeaderValueNullDeletesIt(){
 		$this->childResponse->addHeader('hello', 'world');
 		$this->childResponse->addHeader('hello', null);
-		$this->assertEquals(1, count($this->childResponse->getHeaders()));
+		$this->assertEquals(2, count($this->childResponse->getHeaders()));
 	}
 
 
