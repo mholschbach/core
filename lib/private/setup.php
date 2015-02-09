@@ -179,13 +179,15 @@ class OC_Setup {
 		// generate a secret
 		$secret = \OC::$server->getSecureRandom()->getMediumStrengthGenerator()->generate(48);
 
+		$request = \OC::$server->getRequest();
+
 		//write the config file
 		\OC::$server->getConfig()->setSystemValues([
 			'passwordsalt'		=> $salt,
 			'secret'			=> $secret,
 			'trusted_domains'	=> $trustedDomains,
 			'datadirectory'		=> $dataDir,
-			'overwrite.cli.url'	=> \OC_Request::serverProtocol() . '://' . \OC_Request::serverHost() . OC::$WEBROOT,
+			'overwrite.cli.url'	=> $request->getServerProtocol() . '://' . \OC_Request::serverHost() . OC::$WEBROOT,
 			'dbtype'			=> $dbType,
 			'version'			=> implode('.', OC_Util::getVersion()),
 		]);

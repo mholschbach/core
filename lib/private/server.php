@@ -77,6 +77,7 @@ class Server extends SimpleContainer implements IServerContainer {
 					'requesttoken' => $requestToken,
 				],
 				$this->getSecureRandom(),
+				$this->getConfig(),
 				$stream
 			);
 		});

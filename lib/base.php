@@ -241,14 +241,14 @@ class OC {
 			}
 			header($header);
 			ini_set('session.cookie_secure', 'on');
-			if (OC_Request::serverProtocol() <> 'https' and !OC::$CLI) {
+			if (\OC::$server->getRequest()->getServerProtocol() <> 'https' and !OC::$CLI) {
 				$url = 'https://' . OC_Request::serverHost() . OC_Request::requestUri();
 				header("Location: $url");
 				exit();
 			}
 		} else {
 			// Invalidate HSTS headers
-			if (OC_Request::serverProtocol() === 'https') {
+			if (\OC::$server->getRequest()->getServerProtocol()  === 'https') {
 				header('Strict-Transport-Security: max-age=0');
 			}
 		}

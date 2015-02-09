@@ -4,30 +4,14 @@
  *
  * @author Thomas Müller
  * @copyright 2013 Thomas Müller deepdiver@owncloud.com
+ * @copyright 2015 Lukas Reschke lukas@owncloud.com
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
- * License as published by the Free Software Foundation; either
- * version 3 of the License, or any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU AFFERO GENERAL PUBLIC LICENSE for more details.
- *
- * You should have received a copy of the GNU Affero General Public
- * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
+ * This file is licensed under the Affero General Public License version 3 or
+ * later.
+ * See the COPYING-README file.
  *
  */
 
-/**
- * Public interface of ownCloud for apps to use.
- * Request interface
- *
- */
-
-// use OCP namespace for all classes that are considered public.
-// This means that they should be used by apps instead of the internal ownCloud classes
 namespace OCP;
 
 /**
@@ -59,7 +43,6 @@ interface IRequest {
 
 	/**
 	 * @param string $name
-	 *
 	 * @return string
 	 */
 	function getHeader($name);
@@ -78,7 +61,6 @@ interface IRequest {
 	 * @return mixed the content of the array
 	 */
 	public function getParam($key, $default = null);
-
 
 	/**
 	 * Returns all params that were received, be it from the request
@@ -103,7 +85,6 @@ interface IRequest {
 	 */
 	public function getUploadedFile($key);
 
-
 	/**
 	 * Shortcut for getting env variables
 	 *
@@ -111,7 +92,6 @@ interface IRequest {
 	 * @return array the value in the $_ENV element
 	 */
 	public function getEnv($key);
-
 
 	/**
 	 * Shortcut for getting cookie variables
@@ -121,7 +101,6 @@ interface IRequest {
 	 */
 	function getCookie($key);
 
-
 	/**
 	 * Checks if the CSRF check was correct
 	 * @return bool true if CSRF check passed
@@ -129,9 +108,33 @@ interface IRequest {
 	public function passesCSRFCheck();
 
 	/**
-	 * Returns an ID for the request, value is not guaranteed to be unique and is mostly meant for logging
+	 * Returns an ID for the request, value is not guaranteed to be unique and
+	 * is mostly meant for logging.
 	 * If `mod_unique_id` is installed this value will be taken.
 	 * @return string
 	 */
 	public function getId();
+
+	/**
+	 * Check if the requester sent along an mtime
+	 * @return false|int False or an mtime
+	 */
+	public function hasModificationTime();
+
+	/**
+	 * Returns the remote address, if the connection came from a trusted proxy
+	 * and `forwarded_for_headers` has been configured then the IP address
+	 * specified in this header will be returned instead.
+	 * Do always use this instead of $_SERVER['REMOTE_ADDR']
+	 * @return string IP address
+	 */
+	public function getRemoteAddress();
+
+	/**
+	 * Returns the server protocol. It respects reverse proxy servers and load
+	 * balancers.
+	 * @return string Server protocol (http or https)
+	 */
+	public function getServerProtocol();
+
 }

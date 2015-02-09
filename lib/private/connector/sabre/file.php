@@ -149,7 +149,7 @@ class OC_Connector_Sabre_File extends OC_Connector_Sabre_Node implements \Sabre\
 			}
 
 			// allow sync clients to send the mtime along in a header
-			$mtime = OC_Request::hasModificationTime();
+			$mtime = \OC::$server->getRequest()->hasModificationTime();
 			if ($mtime !== false) {
 				if($this->fileView->touch($this->path, $mtime)) {
 					header('X-OC-MTime: accepted');
@@ -319,7 +319,7 @@ class OC_Connector_Sabre_File extends OC_Connector_Sabre_Node implements \Sabre\
 				}
 
 				// allow sync clients to send the mtime along in a header
-				$mtime = OC_Request::hasModificationTime();
+				$mtime = \OC::$server->getRequest()->hasModificationTime();
 				if ($mtime !== false) {
 					if($this->fileView->touch($targetPath, $mtime)) {
 						header('X-OC-MTime: accepted');

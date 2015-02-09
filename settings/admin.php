@@ -9,6 +9,7 @@ OC_Util::checkAdminUser();
 OC_App::setActiveNavigationEntry("admin");
 
 $template = new OC_Template('settings', 'admin', 'user');
+$request = \OC::$server->getRequest();
 
 $showLog = (\OC::$server->getConfig()->getSystemValue('log_type', 'owncloud') === 'owncloud');
 $numEntriesToLoad = 3;
@@ -59,7 +60,7 @@ $excludedGroupsList = explode(',', $excludedGroupsList); // FIXME: this should b
 $template->assign('shareExcludedGroupsList', implode('|', $excludedGroupsList));
 
 // Check if connected using HTTPS
-$template->assign('isConnectedViaHTTPS', OC_Request::serverProtocol() === 'https');
+$template->assign('isConnectedViaHTTPS', $request->getServerProtocol() === 'https');
 $template->assign('enforceHTTPSEnabled', $config->getSystemValue('forcessl', false));
 $template->assign('forceSSLforSubdomainsEnabled', $config->getSystemValue('forceSSLforSubdomains', false));
 
@@ -88,7 +89,7 @@ $template->assign('WindowsWarning', OC_Util::runningOnWindows());
 $forms = OC_App::getForms('admin');
 $l = OC_L10N::get('settings');
 $formsAndMore = array();
-if (OC_Request::serverProtocol() !== 'https' || !OC_Util::isAnnotationsWorking() ||
+if ($request->getServerProtocol() !== 'https' || !OC_Util::isAnnotationsWorking() ||
 	$suggestedOverwriteCliUrl || !OC_Util::isSetLocaleWorking() || !OC_Util::isPhpCharSetUtf8() ||
 	!OC_Util::fileInfoLoaded() || $databaseOverload
 ) {

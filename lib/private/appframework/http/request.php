@@ -6,24 +6,16 @@
  * @author Bernhard Posselt
  * @copyright 2013 Thomas Tanghus (thomas@tanghus.net)
  * @copyright 2014 Bernhard Posselt <dev@bernhard-posselt.com>
+ * @copyright 2015 Lukas Reschke lukas@owncloud.com
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU AFFERO GENERAL PUBLIC LICENSE
- * License as published by the Free Software Foundation; either
- * version 3 of the License, or any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU AFFERO GENERAL PUBLIC LICENSE for more details.
- *
- * You should have received a copy of the GNU Affero General Public
- * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- *
+ * This file is licensed under the Affero General Public License version 3 or
+ * later.
+ * See the COPYING-README file.
  */
 
 namespace OC\AppFramework\Http;
 
+use OCP\IConfig;
 use OCP\IRequest;
 use OCP\Security\ISecureRandom;
 
@@ -53,6 +45,8 @@ class Request implements \ArrayAccess, \Countable, IRequest {
 	protected $secureRandom;
 	/** @var string */
 	protected $requestId = '';
+	/** @var IConfig */
+	protected $config;
 
 	/**
 	 * @param array $vars An associative array with the following optional values:
@@ -66,15 +60,18 @@ class Request implements \ArrayAccess, \Countable, IRequest {
 	 *        - string 'method' the request method (GET, POST etc)
 	 *        - string|false 'requesttoken' the requesttoken or false when not available
 	 * @param ISecureRandom $secureRandom
+	 * @param IConfig $config
 	 * @param string $stream
 	 * @see http://www.php.net/manual/en/reserved.variables.php
 	 */
 	public function __construct(array $vars=array(),
 								ISecureRandom $secureRandom,
+								IConfig $config,
 								$stream='php://input') {
 		$this->inputStream = $stream;
-		$this->items['params'] = array();
+		$this->items['params'] = [];
 		$this->secureRandom = $secureRandom;
+		$this->config = $config;
 
 		if(!array_key_exists('method', $vars)) {
 			$vars['method'] = 'GET';
@@ -116,7 +113,10 @@ class Request implements \ArrayAccess, \Countable, IRequest {
 
 	}
 
-	public function setUrlParameters($parameters) {
+	/**
+	 * @param array $parameters
+	 */
+	public function setUrlParameters(array $parameters) {
 		$this->items['urlParams'] = $parameters;
 		$this->items['parameters'] = array_merge(
 			$this->items['parameters'],
@@ -124,7 +124,10 @@ class Request implements \ArrayAccess, \Countable, IRequest {
 		);
 	}
 
-	// Countable method.
+	/**
+	 * Countable method.
+	 * @return int
+	 */
 	public function count() {
 		return count(array_keys($this->items['parameters']));
 	}
@@ -163,20 +166,27 @@ class Request implements \ArrayAccess, \Countable, IRequest {
 	}
 
 	/**
-	* @see offsetExists
-	*/
+	 * @param mixed $offset
+	 * @param mixed $value
+	 * @see offsetExists
+	 */
 	public function offsetSet($offset, $value) {
 		throw new \RuntimeException('You cannot change the contents of the request object');
 	}
 
 	/**
-	* @see offsetExists
-	*/
+	 * @param mixed $offset
+	 * @see offsetExists
+	 */
 	public function offsetUnset($offset) {
 		throw new \RuntimeException('You cannot change the contents of the request object');
 	}
 
-	// Magic property accessors
+	/**
+	 * Magic property accessors
+	 * @param $name
+	 * @param $value
+	 */
 	public function __set($name, $value) {
 		throw new \RuntimeException('You cannot change the contents of the request object');
 	}
@@ -231,12 +241,17 @@ class Request implements \ArrayAccess, \Countable, IRequest {
 		}
 	}
 
-
+	/**
+	 * @param $name
+	 * @return bool
+	 */
 	public function __isset($name) {
 		return isset($this->items['parameters'][$name]);
 	}
 
-
+	/**
+	 * @param $id
+	 */
 	public function __unset($id) {
 		throw new \RunTimeException('You cannot change the contents of the request object');
 	}
@@ -396,7 +411,8 @@ class Request implements \ArrayAccess, \Countable, IRequest {
 	}
 
 	/**
-	 * Returns an ID for the request, value is not guaranteed to be unique and is mostly meant for logging
+	 * Returns an ID for the request, value is not guaranteed to be unique and
+	 * is mostly meant for logging.
 	 * If `mod_unique_id` is installed this value will be taken.
 	 * @return string
 	 */
@@ -412,4 +428,81 @@ class Request implements \ArrayAccess, \Countable, IRequest {
 		return $this->requestId;
 	}
 
+	/**
+	 * Check if the requester sent along an mtime
+	 * @return false|int False or an mtime
+	 */
+	public function hasModificationTime() {
+		if(isset($this->server['HTTP_X_OC_MTIME'])) {
+			return (int)$this->server['HTTP_X_OC_MTIME'];
+		}
+		return false;
+	}
+
+	/**
+	 * Returns the remote address, if the connection came from a trusted proxy
+	 * and `forwarded_for_headers` has been configured then the IP address
+	 * specified in this header will be returned instead.
+	 * Do always use this instead of $_SERVER['REMOTE_ADDR']
+	 * @return string IP address
+	 */
+	public function getRemoteAddress() {
+		$remoteAddress = isset($this->server['REMOTE_ADDR']) ? $this->server['REMOTE_ADDR'] : '';
+		$trustedProxies = $this->config->getSystemValue('trusted_proxies', []);
+
+		if(is_array($trustedProxies) && in_array($remoteAddress, $trustedProxies)) {
+			$forwardedForHeaders = $this->config->getSystemValue('forwarded_for_headers', []);
+
+			foreach($forwardedForHeaders as $header) {
+				if(isset($this->server[$header])) {
+					foreach(explode(',', $this->server[$header]) as $IP) {
+						$IP = trim($IP);
+						if (filter_var($IP, FILTER_VALIDATE_IP) !== false) {
+							return $IP;
+						}
+					}
+				}
+			}
+		}
+
+		return $remoteAddress;
+	}
+
+	/**
+	 * Check overwrite condition
+	 * @param string $type
+	 * @return bool
+	 */
+	private function isOverwriteCondition($type = '') {
+		$regex = '/' . $this->config->getSystemValue('overwritecondaddr', '')  . '/';
+		return $regex === '//' || preg_match($regex, $this->server['REMOTE_ADDR']) === 1
+		|| ($type !== 'protocol' && $this->config->getSystemValue('forcessl', false));
+	}
+
+	/**
+	 * Returns the server protocol. It respects reverse proxy servers and load
+	 * balancers.
+	 * @return string Server protocol (http or https)
+	 */
+	public function getServerProtocol() {
+		if($this->config->getSystemValue('overwriteprotocol') !== ''
+			&& $this->isOverwriteCondition('protocol')) {
+			return $this->config->getSystemValue('overwriteprotocol');
+		}
+
+		if (isset($this->server['HTTP_X_FORWARDED_PROTO'])) {
+			$proto = strtolower($this->server['HTTP_X_FORWARDED_PROTO']);
+			// Verify that the protocol is always HTTP or HTTPS
+			// default to http if an invalid value is provided
+			return $proto === 'https' ? 'https' : 'http';
+		}
+
+		if (isset($this->server['HTTPS'])
+			&& !empty($this->server['HTTPS'])
+			&& $this->server['HTTPS'] !== 'off') {
+			return 'https';
+		}
+
+		return 'http';
+	}
 }

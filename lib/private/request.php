@@ -15,34 +15,6 @@ class OC_Request {
 	const REGEX_LOCALHOST = '/^(127\.0\.0\.1|localhost)$/';
 
 	/**
-	 * Returns the remote address, if the connection came from a trusted proxy and `forwarded_for_headers` has been configured
-	 * then the IP address specified in this header will be returned instead.
-	 * Do always use this instead of $_SERVER['REMOTE_ADDR']
-	 * @return string IP address
-	 */
-	public static function getRemoteAddress() {
-		$remoteAddress = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
-		$trustedProxies = \OC::$server->getConfig()->getSystemValue('trusted_proxies', array());
-
-		if(is_array($trustedProxies) && in_array($remoteAddress, $trustedProxies)) {
-			$forwardedForHeaders = \OC::$server->getConfig()->getSystemValue('forwarded_for_headers', array());
-
-			foreach($forwardedForHeaders as $header) {
-				if (array_key_exists($header, $_SERVER) === true) {
-					foreach (explode(',', $_SERVER[$header]) as $IP) {
-						$IP = trim($IP);
-						if (filter_var($IP, FILTER_VALIDATE_IP) !== false) {
-							return $IP;
-						}
-					}
-				}
-			}
-		}
-
-		return $remoteAddress;
-	}
-
-	/**
 	 * Check overwrite condition
 	 * @param string $type
 	 * @return bool
@@ -175,28 +147,6 @@ class OC_Request {
 	}
 
 	/**
-	* Returns the server protocol
-	* @return string the server protocol
-	*
-	* Returns the server protocol. It respects reverse proxy servers and load balancers
-	*/
-	public static function serverProtocol() {
-		if(OC_Config::getValue('overwriteprotocol', '') !== '' and self::isOverwriteCondition('protocol')) {
-			return OC_Config::getValue('overwriteprotocol');
-		}
-		if (isset($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
-			$proto = strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']);
-			// Verify that the protocol is always HTTP or HTTPS
-			// default to http if an invalid value is provided
-			return $proto === 'https' ? 'https' : 'http';
-		}
-		if (isset($_SERVER['HTTPS']) && !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
-			return 'https';
-		}
-		return 'http';
-	}
-
-	/**
 	 * Returns the request uri
 	 * @return string the request uri
 	 *
@@ -295,18 +245,6 @@ class OC_Request {
 			return '';
 		} else {
 			return $path_info;
-		}
-	}
-
-	/**
-	 * Check if the requester sent along an mtime
-	 * @return false or an mtime
-	 */
-	static public function hasModificationTime () {
-		if (isset($_SERVER['HTTP_X_OC_MTIME'])) {
-			return $_SERVER['HTTP_X_OC_MTIME'];
-		} else {
-			return false;
 		}
 	}
 

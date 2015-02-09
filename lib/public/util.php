@@ -285,9 +285,10 @@ class Util {
 	/**
 	 * Returns the server protocol. It respects reverse proxy servers and load balancers
 	 * @return string the server protocol
+	 * @deprecated Use \OCP\IRequest::getServerProtocol instead
 	 */
 	public static function getServerProtocol() {
-		return(\OC_Request::serverProtocol());
+		return \OC::$server->getRequest()->getServerProtocol();
 	}
 
 	/**

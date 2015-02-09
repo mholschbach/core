@@ -33,33 +33,6 @@ class Test_Request extends \Test\TestCase {
 		$this->assertEquals('/domain.tld/ownCloud/tests/lib/request.php', $scriptName);
 	}
 
-	public function testGetRemoteAddress() {
-		$_SERVER['REMOTE_ADDR'] = '10.0.0.2';
-		$_SERVER['HTTP_X_FORWARDED'] = '10.4.0.5, 10.4.0.4';
-		$_SERVER['HTTP_X_FORWARDED_FOR'] = '192.168.0.233';
-
-		// Without having specified a trusted remote address
-		$this->assertEquals('10.0.0.2', OC_Request::getRemoteAddress());
-
-		// With specifying a trusted remote address but no trusted header
-		OC::$server->getConfig()->setSystemValue('trusted_proxies', array('10.0.0.2'));
-		$this->assertEquals('10.0.0.2', OC_Request::getRemoteAddress());
-
-		// With specifying a trusted remote address and trusted headers
-		OC::$server->getConfig()->setSystemValue('trusted_proxies', array('10.0.0.2'));
-		OC::$server->getConfig()->setSystemValue('forwarded_for_headers', array('HTTP_X_FORWARDED'));
-		$this->assertEquals('10.4.0.5', OC_Request::getRemoteAddress());
-		OC::$server->getConfig()->setSystemValue('forwarded_for_headers', array('HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED'));
-		$this->assertEquals('192.168.0.233', OC_Request::getRemoteAddress());
-
-		// With specifying multiple trusted remote addresses and trusted headers
-		OC::$server->getConfig()->setSystemValue('trusted_proxies', array('10.3.4.2', '10.0.0.2', '127.0.3.3'));
-		OC::$server->getConfig()->setSystemValue('forwarded_for_headers', array('HTTP_X_FORWARDED'));
-		$this->assertEquals('10.4.0.5', OC_Request::getRemoteAddress());
-		OC::$server->getConfig()->setSystemValue('forwarded_for_headers', array('HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED'));
-		$this->assertEquals('192.168.0.233', OC_Request::getRemoteAddress());
-	}
-
 	/**
 	 * @dataProvider rawPathInfoProvider
 	 * @param $expected
